@@ -66,6 +66,7 @@ void * gestInputOnTerrain(SDL_Renderer * renderer){
                     
                     case SDLK_x:
                         printf("end game");
+                        printf("%f\n", Joueur.x);
                         running = 0;
                         //GameOption = ;
                         break;

@@ -12,6 +12,8 @@
 extern int Window_Height;
 extern int Window_Width;
 
+extern int DrawHitEffect;
+
 int BouclePrincipale();
 
 void AffichageMap(SDL_Renderer * renderer);

@@ -9,6 +9,9 @@ SDL_Surface *blocks[5];
 SDL_Texture *sprite_texture;
 SDL_Surface *character_sprite[10];
 
+SDL_Texture *bg_texture;
+SDL_Surface *background;
+
 int Window_Height;
 int Window_Width;
 
@@ -47,8 +50,8 @@ void DrawPlayerOnMap(SDL_Renderer * renderer){
     SDL_Rect rect;
     rect.w = PLAYER_W * (Window_Width)/MAP_W;
     rect.h = PLAYER_H * (Window_Height/MAP_H);
-    rect.x = Joueur.x;
-    rect.y = Joueur.y;
+    rect.x = Joueur.x * (Window_Width)/MAP_W;
+    rect.y = Joueur.y * (Window_Height/MAP_H);
     sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[0]);
     SDL_RenderCopyEx(renderer, sprite_texture, NULL, &rect, 0, NULL, SDL_FLIP_HORIZONTAL*(1-Joueur.direction));
     SDL_DestroyTexture(sprite_texture);
@@ -56,10 +59,10 @@ void DrawPlayerOnMap(SDL_Renderer * renderer){
 
 void DrawPlayer(SDL_Renderer * renderer){
     SDL_Rect rect;
-    rect.w = PLAYER_W * (Window_Width)/MAP_W;
-    rect.h = PLAYER_H * (Window_Height/MAP_H);
-    rect.x = Window_Height/2;
-    rect.y = Window_Width/2;
+    rect.w = PLAYER_W * (Window_Width)/NB_TO_SHOW_X;
+    rect.h = PLAYER_H * (Window_Height/NB_TO_SHOW_Y);
+    rect.x = Window_Width/2;
+    rect.y = Window_Height/2;
     sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[0]);
     SDL_RenderCopyEx(renderer, sprite_texture, NULL, &rect, 0, NULL, SDL_FLIP_HORIZONTAL*(1-Joueur.direction));
     SDL_DestroyTexture(sprite_texture);
@@ -68,7 +71,7 @@ void DrawPlayer(SDL_Renderer * renderer){
 
 
 void AffichageNormal(){
-    //bg_texture = SDL_CreateTextureFromSurface(renderer, background);
+    bg_texture = SDL_CreateTextureFromSurface(renderer, background);
     block_texture = SDL_CreateTextureFromSurface(renderer, blocks[0]);
 //////////////// affichage background
     SDL_Rect rect;
@@ -76,18 +79,29 @@ void AffichageNormal(){
     rect.w = Window_Width;
     rect.x = 0;
     rect.y = 0;
-    //SDL_RenderCopy(renderer, bg_texture, NULL, &rect);
+    SDL_RenderCopy(renderer, bg_texture, NULL, &rect);
+
+    block_texture = SDL_CreateTextureFromSurface(renderer, blocks[0]);
+
+    //background
+    rect.w = (Window_Width);
+    rect.h = Window_Height;
+    rect.x = 0;
+    rect.y = 0;
+
+    SDL_SetRenderDrawColor(renderer,200,200,200,200);
+    SDL_RenderFillRect(renderer, &rect);
 //////////////// affichage map 
     float side_padding = (Joueur.x - (int)Joueur.x);
     float top_padding = 1 - (Joueur.y  -(int)Joueur.y);
-    rect.w = (Window_Width/MAP_W);
-    rect.h = (Window_Height/MAP_H);
+    rect.w = (Window_Width/NB_TO_SHOW_X);
+    rect.h = (Window_Height/NB_TO_SHOW_Y);
     rect.x =  -side_padding * rect.w;
     rect.y = (top_padding- 1) * rect.h;
     int offset_y;
     int offset_x;
-    for(int y = 0; y<MAP_H + 4; y++){
-            for (int x = 0; x < MAP_W +5; x++)
+    for(int y = 0; y<NB_TO_SHOW_Y + 4; y++){
+            for (int x = 0; x < NB_TO_SHOW_X +5; x++)
             {
                 offset_x = x + Joueur.x - 4;
                 offset_y = y + Joueur.y - 4;
@@ -169,6 +183,7 @@ int BouclePrincipale(){
 
     blocks[0] = IMG_Load("Res/block.png");
     character_sprite[0] = IMG_Load("Res/block.png");
+    background = IMG_Load("4393129.jpg");
 
     pthread_t threadGest;
     int RetourDuThreadGest = pthread_create(&threadGest, NULL, BoucleGestInput, NULL);

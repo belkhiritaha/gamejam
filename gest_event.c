@@ -39,8 +39,6 @@ void * gestInputOnTerrain(SDL_Renderer * renderer){
                         else{
                             GameOption = ON_MAP;
                         }
-                        printf("change mode\n");
-                        printf("%d", GameOption);
                         continue;
                     
                     default:

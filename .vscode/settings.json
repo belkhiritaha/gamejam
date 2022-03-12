@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "entity.h": "c",
+        "render.h": "c",
+        "main.h": "c"
+    }
+}

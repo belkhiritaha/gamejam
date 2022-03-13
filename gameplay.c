@@ -102,7 +102,7 @@ int EntityMoveX(Player_t *pEntity){
     int MoveRight = 0;
     (pEntity->x - Joueur.x > 0) ? (pEntity->direction = LEFT):(pEntity->direction = RIGHT);
     if (fabs(pEntity->x - Joueur.x) < 5 + rand()%5){
-        if (fabs(pEntity->x - Joueur.x) > 2){
+        if (fabs(pEntity->x - Joueur.x) > 4){
             if (pEntity->x - Joueur.x < 0){
                 MoveRight = 1;
                 MoveLeft = 0;
@@ -115,7 +115,7 @@ int EntityMoveX(Player_t *pEntity){
         }
         else {
             DrawHitEffect = -(pEntity->x - Joueur.x)/fabs(pEntity->x - Joueur.x);
-            Joueur.hp -= 0.1;
+            Joueur.hp -= 1;
             MoveRight = 0;
             MoveLeft = 0;
         }
@@ -204,12 +204,15 @@ void UpdateChests(){
 
 void gestPhysique(){
     //printf("%p\n", Ennemy);
+    if (Joueur.hp <= 0){
+        GameOption = END_SCREEN;
+    }
     for (int i = 0; i < EnnemiesCount ; i++){
         Player_t * Ennemy = ListeEnnemies[i];
         EntityMoveX(Ennemy);
         EntityMoveY(Ennemy);
         if (isJoueurAttacking){
-            if (fabs(Ennemy->x - Joueur.x) < 3){
+            if (fabs(Ennemy->x - Joueur.x) < 5){
                 Ennemy->hp -= 10;
             }
         }

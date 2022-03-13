@@ -31,6 +31,7 @@ SDL_Texture *CardTexture;
 SDL_Surface * Trophy;
 
 SDL_Surface * GameName;
+SDL_Surface * GameLost;
 
 int Window_Height;
 int Window_Width;
@@ -437,12 +438,31 @@ void AffichageMenu(){
     SDL_DestroyTexture(blur_texture);
 }
 
+void AffichageEnd(){
+    isJoueurAttacking = 1;
+    AffichageMap();
+    isJoueurAttacking = 0;
+    SDL_Rect rect;
+    rect.w = Window_Width;
+    rect.h = Window_Height/2;
+    rect.x = 0; 
+    rect.y = Window_Height/4;  
+    blur_texture = SDL_CreateTextureFromSurface(renderer, GameLost);
+    SDL_RenderCopy(renderer, blur_texture , NULL, &rect);
+    DrawScoreGlobal();
+    DrawKills();
+    DrawScore();
+    SDL_RenderPresent(renderer);
+    SDL_DestroyTexture(blur_texture);
+}
+
 void *BoucleGestInput(void *arg){
     while(GameOption){
       switch(GameOption){
           case ON_MAP : gestInputOnTerrain(renderer);break;
           case ON_TERRAIN : gestInputOnTerrain(renderer);break;
           case MENU : gestMenu();break;
+          case END_SCREEN : gestMenu();break;
           default:printf("game option fault");break;
       }
     }
@@ -528,6 +548,7 @@ int BouclePrincipale(){
 
     Trophy = IMG_Load("Res/trophy.png");
     GameName = IMG_Load("Res/gameName.png");
+    GameLost = IMG_Load("Res/gameLost.png");
 
     pthread_t threadGest;
     int RetourDuThreadGest = pthread_create(&threadGest, NULL, BoucleGestInput, NULL);
@@ -558,6 +579,10 @@ int BouclePrincipale(){
 
                 case MENU:
                     AffichageMenu();
+                    break;
+
+                case END_SCREEN:
+                    AffichageEnd();
                     break;
 
                 default:

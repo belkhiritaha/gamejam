@@ -1,6 +1,8 @@
 #include "gameplay.h"
 
 int DrawJumpEffect = 0;
+int Score = 0;
+int Kills = 0;
 
 void refreshMana(){
     int map_timer_curr = SDL_GetTicks();
@@ -21,7 +23,6 @@ void refreshMana(){
         mana_save1 = 0;
         mana_save2 = 0;
     }
-    printf("mana: %d\n", Joueur.mana);
 }
 
 int checkCollisionY(Player_t *pEntity){
@@ -112,7 +113,7 @@ int EntityMoveX(Player_t *pEntity){
         }
         else {
             DrawHitEffect = -(pEntity->x - Joueur.x)/fabs(pEntity->x - Joueur.x);
-            Joueur.hp -= 1;
+            Joueur.hp -= 0.1;
             MoveRight = 0;
             MoveLeft = 0;
         }
@@ -175,6 +176,27 @@ int PlayerMoveY(Player_t * pEntity){
     return 1;
 }
 
+int checkChest(){
+    for (int i=0; i < NB_CHEST; i++){
+        //printf("%d %d\n",(int)(Joueur.x * (Window_Width)/MAP_W) - 30, chests[i]);
+        if ((int)(Joueur.x * (Window_Width)/MAP_W) - 30 == chests[i]){
+            return i;
+        }
+    }
+    return 69;
+}
+
+void UpdateChests(){
+    int chestIndex = checkChest();
+    if (chestIndex != 69){
+        refreshChest(chestIndex);
+        int powerUp = rand()%3;
+        if (Inventory[powerUp] == 0){
+            Inventory[powerUp] = 1;
+        }
+        Score = Score + 1;
+    }
+}
 
 
 void gestPhysique(){
@@ -183,8 +205,20 @@ void gestPhysique(){
         Player_t * Ennemy = ListeEnnemies[i];
         EntityMoveX(Ennemy);
         EntityMoveY(Ennemy);
+        if (isJoueurAttacking){
+            if (fabs(Ennemy->x - Joueur.x) < 3){
+                Ennemy->hp -= 10;
+            }
+        }
+        if (Ennemy->hp <= 0){
+            Kills = Kills + 1;
+            ListeEnnemies[i] = CreateEnnemy();
+            initPlayer(ListeEnnemies[i], rand() % 120, 20, 1);
+            DrawHitEffect = 0;
+        }
     }
     PlayerMoveX(&Joueur);
     PlayerMoveY(&Joueur);
+    UpdateChests();
 }
 

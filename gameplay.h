@@ -13,6 +13,9 @@
 #define ENNEMY_GROUND_MVT 0.00003
 #define GRAVITY 0.000008
 
+extern int Score;
+extern int Kills;
+
 void refreshMana();
 
 void gestPhysique();

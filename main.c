@@ -2,6 +2,7 @@
 
 int running;
 int GameOption;
+int * chests;
 
 int main(){
     running = 1;
@@ -9,6 +10,8 @@ int main(){
     initPlayer(&Joueur, 20, 10, 0);
     initListeEnnemies(ListeEnnemies, &EnnemiesCount);
     initMap();
+    chests = initChests();
+    initInventory();
     //printMap();
     BouclePrincipale();
 }

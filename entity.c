@@ -3,6 +3,16 @@
 Player_t Joueur;
 Player_t Mob_tete;
 
+int Inventory[4];
+
+void initInventory(){
+    Inventory[REFILL_AUTO] = 1;
+    Inventory[REFILL_MANA] = 1;
+    Inventory[JUMP_BOOST] = 1;
+    Inventory[3] = 20;
+}
+
+
 void initPlayer(Player_t * pJoueur, float x, float y, int id){
     pJoueur->x = x;
     pJoueur->y = y;
@@ -11,7 +21,7 @@ void initPlayer(Player_t * pJoueur, float x, float y, int id){
     pJoueur->ySpeed = 0;
     pJoueur->suiv = NULL;
     pJoueur->id = id;
-    pJoueur->mana = 500;
+    pJoueur->mana = MANA_MAX;
     pJoueur->hp = HP_MAX;
 }
 
@@ -49,4 +59,14 @@ Player_t * CreateEnnemy(){
     return Ennemy;
 }
 
+int * initChests(){
+    int * ListeChests = calloc(NB_CHEST, sizeof(int));
+    for (int i = 0; i < NB_CHEST; i++){
+        ListeChests[i] = (rand()% 1920) ;
+    }
+    return ListeChests;
+}
 
+void refreshChest(int chest_index){
+    chests[chest_index] = (rand()%1920);
+}

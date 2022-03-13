@@ -7,7 +7,7 @@ SDL_Texture *block_texture;
 SDL_Surface *blocks[5];
 
 SDL_Texture *sprite_texture;
-SDL_Surface *character_sprite[30];
+SDL_Surface *character_sprite[50];
 SDL_Surface *ennemy_sprite[20];
 
 SDL_Texture *bg_texture;
@@ -19,12 +19,23 @@ SDL_Surface *blur;
 SDL_Surface *HitEffectSurface;
 SDL_Surface *ArrowSurface;
 
+SDL_Surface *BarsSurface;
+
+SDL_Surface *ChestSurface;
+SDL_Surface *SwordSurface;
+SDL_Surface *SkullSurface;
+
+SDL_Surface *Card[3];
+SDL_Texture *CardTexture;
+
 int Window_Height;
 int Window_Width;
 
 int DrawHitEffect = 0;
 
+TTF_Font *RobotoFont;
 
+SDL_Color Color = {255, 255, 255};
 
 
 
@@ -52,7 +63,96 @@ void CreateWindow(){
         exit(EXIT_FAILURE);
     }
 
+    if (TTF_Init() == -1)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+
+    RobotoFont = TTF_OpenFont("Roboto-Black.ttf", 50);
+
     SDL_GetWindowSize(window, &Window_Width, &Window_Height);
+}
+
+void DrawCards(){
+    SDL_Rect rect;
+    rect.w = Window_Width/10;
+    rect.h = Window_Height/10;
+    rect.x = Window_Width - rect.w - 50;
+    rect.y = 50; 
+
+    CardTexture = SDL_CreateTextureFromSurface(renderer, Card[0]);
+    SDL_RenderCopy(renderer, CardTexture, NULL, &rect);
+    SDL_DestroyTexture(CardTexture);
+}
+
+
+void DrawScore(){
+    char ScoreString[10];
+    sprintf(ScoreString,"%d",Score);
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(RobotoFont, ScoreString, Color); 
+    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    SDL_Rect Message_rect;
+    Message_rect.w = 50;
+    Message_rect.h = 50;
+    Message_rect.x = Window_Width - Message_rect.w - 50; 
+    Message_rect.y = 50;  
+    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+
+    Message_rect.x -= 80;
+    blur_texture = SDL_CreateTextureFromSurface(renderer, ChestSurface);
+    SDL_RenderCopy(renderer, blur_texture, NULL, &Message_rect);
+    SDL_DestroyTexture(blur_texture);
+}
+
+void DrawAutoAttack(){
+    char AutoString[10];
+    sprintf(AutoString,"%d",Inventory[3]);
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(RobotoFont, AutoString, Color); 
+    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    SDL_Rect Message_rect;
+    Message_rect.w = 50;
+    Message_rect.h = 50;
+    Message_rect.x = 50; 
+    Message_rect.y = 50;  
+    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+
+    Message_rect.x += 80;
+    blur_texture = SDL_CreateTextureFromSurface(renderer, SwordSurface);
+    SDL_RenderCopy(renderer, blur_texture, NULL, &Message_rect);
+    SDL_DestroyTexture(blur_texture);
+}
+
+void DrawKills(){
+    char KillString[10];
+    sprintf(KillString,"%d",Kills);
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(RobotoFont, KillString, Color); 
+    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    SDL_Rect Message_rect;
+    Message_rect.w = 50;
+    Message_rect.h = 50;
+    Message_rect.x = 50; 
+    Message_rect.y = 150;  
+    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+
+    Message_rect.x += 80;
+    blur_texture = SDL_CreateTextureFromSurface(renderer, SkullSurface);
+    SDL_RenderCopy(renderer, blur_texture, NULL, &Message_rect);
+    SDL_DestroyTexture(blur_texture);
+}
+
+
+void DrawChests(){
+    SDL_Rect rect;
+    rect.w = 25;
+    rect.h = 25;
+    rect.y = Window_Height/2 - rect.h - 10;
+    blur_texture = SDL_CreateTextureFromSurface(renderer, ChestSurface);
+    for (int i = 0; i < NB_CHEST; i++){
+        rect.x = chests[i] - rect.w;
+        SDL_RenderCopy(renderer, blur_texture, NULL, &rect);
+    }
+    SDL_DestroyTexture(blur_texture);
 }
 
 
@@ -102,11 +202,16 @@ void DrawPlayer(SDL_Renderer * renderer){
     rect.x = Window_Width/2 - rect.w/2;
     rect.y = Window_Height/2 - rect.h/2 + 5;
     if (Joueur.isGrounded){
-        if (fabs(Joueur.xSpeed) > MAX_RUN_SPEED/10){
-            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[10 + tick % 7]);
+        if (isJoueurAttacking){
+            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[30 + tick % 12]);
         }
         else {
-            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[tick % 5]);
+            if (fabs(Joueur.xSpeed) > MAX_RUN_SPEED/10){
+                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[10 + tick % 7]);
+            }
+            else {
+                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[tick % 5]);
+            }
         }
     }
     else {
@@ -140,22 +245,31 @@ void DrawPlayer(SDL_Renderer * renderer){
 
 void DrawBars(){
     SDL_Rect rect;
-    rect.w = (Joueur.hp) * Window_Width/(2 * HP_MAX);
-    rect.h = Window_Height/60;
+    rect.w = (Joueur.hp) * Window_Width/(2.75 * HP_MAX);
+    rect.h = Window_Height/20;
 
-    rect.x = Window_Width /4;
-    rect.y = Window_Height/10;
+    rect.x = Window_Width /4 + 100;
+    rect.y = Window_Height/10 - rect.h;
 
     SDL_SetRenderDrawColor(renderer,250,0,0,250);
     SDL_RenderFillRect(renderer, &rect);        
 
-    rect.w = (Joueur.mana) * Window_Width/(2 * MANA_MAX);
+    rect.w = (Joueur.mana) * Window_Width/(2.75 * MANA_MAX);
     rect.y += rect.h;
 
     SDL_SetRenderDrawColor(renderer,0,0,250,250);
     SDL_RenderFillRect(renderer, &rect);
 
+    rect.w =Window_Width/2;
+    rect.h = Window_Height;
 
+    rect.x = Window_Width /4;
+    rect.y = -300;
+
+    blur_texture = SDL_CreateTextureFromSurface(renderer, BarsSurface);
+    SDL_RenderCopy(renderer, blur_texture, NULL, &rect);
+
+    SDL_DestroyTexture(blur_texture);
 }
 
 
@@ -218,6 +332,11 @@ void AffichageNormal(){
 
     DrawBars();
 
+    DrawScore();
+    DrawAutoAttack();
+    DrawKills();
+    DrawCards();
+
     SDL_RenderPresent(renderer);
     SDL_DestroyTexture(block_texture); 
     SDL_DestroyTexture(sprite_texture);
@@ -260,6 +379,8 @@ void AffichageMap(SDL_Renderer * renderer){
         Player_t * Ennemy = ListeEnnemies[i];
         DrawPlayerOnMap(Ennemy, renderer);
     }
+
+    DrawChests();
 
 
     SDL_RenderPresent(renderer);
@@ -311,6 +432,19 @@ int BouclePrincipale(){
     character_sprite[24] = IMG_Load("Res/Jump/Warrior_Jump_2.png");
     character_sprite[25] = IMG_Load("Res/Jump/Warrior_Jump_3.png");
 
+    character_sprite[30] = IMG_Load("Res/Attack/Warrior_Attack_1.png");
+    character_sprite[31] = IMG_Load("Res/Attack/Warrior_Attack_2.png");
+    character_sprite[32] = IMG_Load("Res/Attack/Warrior_Attack_3.png");
+    character_sprite[33] = IMG_Load("Res/Attack/Warrior_Attack_4.png");
+    character_sprite[34] = IMG_Load("Res/Attack/Warrior_Attack_5.png");
+    character_sprite[35] = IMG_Load("Res/Attack/Warrior_Attack_6.png");
+    character_sprite[36] = IMG_Load("Res/Attack/Warrior_Attack_7.png");
+    character_sprite[37] = IMG_Load("Res/Attack/Warrior_Attack_8.png");
+    character_sprite[38] = IMG_Load("Res/Attack/Warrior_Attack_9.png");
+    character_sprite[39] = IMG_Load("Res/Attack/Warrior_Attack_10.png");
+    character_sprite[40] = IMG_Load("Res/Attack/Warrior_Attack_11.png");
+    character_sprite[41] = IMG_Load("Res/Attack/Warrior_Attack_12.png");
+
     ennemy_sprite[0] = IMG_Load("Res/monster_idle/Bringer-of-Death_Idle_1.png");
     ennemy_sprite[1] = IMG_Load("Res/monster_idle/Bringer-of-Death_Idle_2.png");
     ennemy_sprite[2] = IMG_Load("Res/monster_idle/Bringer-of-Death_Idle_3.png");
@@ -333,6 +467,15 @@ int BouclePrincipale(){
     blur = IMG_Load("Res/blur.png");
     HitEffectSurface = IMG_Load("Res/HitEffect.png");
     ArrowSurface = IMG_Load("Res/arrow.png");
+    BarsSurface = IMG_Load("Res/bars.png");
+
+    ChestSurface = IMG_Load("Res/chest.png");
+    SwordSurface = IMG_Load("Res/sword.png");
+    SkullSurface = IMG_Load("Res/skull.png");
+
+    Card[0] = IMG_Load("Res/refill_attacks.png");
+    Card[1] = IMG_Load("Res/refill_mana.png");
+    Card[2] = IMG_Load("Res/jump_boost.png");
 
     pthread_t threadGest;
     int RetourDuThreadGest = pthread_create(&threadGest, NULL, BoucleGestInput, NULL);

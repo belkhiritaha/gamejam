@@ -7,14 +7,23 @@ int map_timer2;
 int mana_save1;
 int mana_save2;
 
+int isJoueurAttacking = 0;
+
 void * gestInputOnTerrain(SDL_Renderer * renderer){
     SDL_Event event;
     while (SDL_PollEvent(&event)){
             switch(event.type)
             {
+                case SDL_MOUSEBUTTONDOWN:
+                    if (Inventory[3] > 0){
+                        Inventory[3] = Inventory[3] - 1;
+                        isJoueurAttacking = 1;
+                    }
+                    continue;
+                
                 case SDL_MOUSEBUTTONUP:
-                    printf("Click\n");
-                    break;
+                    isJoueurAttacking = 0;
+                    continue;
 
                 case SDL_KEYDOWN:
                     switch (event.key.keysym.sym)
@@ -37,7 +46,7 @@ void * gestInputOnTerrain(SDL_Renderer * renderer){
                         Keys[2] = 1;
                         continue;
 
-                    case SDLK_m:
+                    case SDLK_SPACE:
                         if (GameOption == ON_MAP){
                             GameOption = ON_TERRAIN;
                             map_timer1 = 0;

@@ -299,7 +299,7 @@ void DrawBars(){
     rect.h = Window_Height;
 
     rect.x = Window_Width /4;
-    rect.y = -300;
+    rect.y = -Window_Height/3.6;
 
     blur_texture = SDL_CreateTextureFromSurface(renderer, BarsSurface);
     SDL_RenderCopy(renderer, blur_texture, NULL, &rect);

@@ -11,7 +11,8 @@ void initPlayer(Player_t * pJoueur, float x, float y, int id){
     pJoueur->ySpeed = 0;
     pJoueur->suiv = NULL;
     pJoueur->id = id;
-    pJoueur->mana = 100;
+    pJoueur->mana = 500;
+    pJoueur->hp = HP_MAX;
 }
 
 Player_t * ListeEnnemies[NB_ENNEMY];

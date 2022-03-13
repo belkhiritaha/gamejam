@@ -2,6 +2,11 @@
 
 int Keys[NB_KEYS];
 
+int map_timer1;
+int map_timer2;
+int mana_save1;
+int mana_save2;
+
 void * gestInputOnTerrain(SDL_Renderer * renderer){
     SDL_Event event;
     while (SDL_PollEvent(&event)){
@@ -35,9 +40,24 @@ void * gestInputOnTerrain(SDL_Renderer * renderer){
                     case SDLK_m:
                         if (GameOption == ON_MAP){
                             GameOption = ON_TERRAIN;
+                            map_timer1 = 0;
+                            map_timer2 = SDL_GetTicks();
+                            mana_save1 = Joueur.mana;
+                            mana_save2 = Joueur.mana;
                         }
                         else{
-                            GameOption = ON_MAP;
+                            if (Joueur.mana > MANA_MAX - 1000){
+                                mana_save2 = Joueur.mana;
+                                GameOption = ON_MAP;
+                                map_timer1 = SDL_GetTicks();
+                                map_timer2 = 0;
+                            }
+                            else {
+                                printf("hello");
+                                Joueur.mana = 0;
+                                mana_save1 = 0;
+                                mana_save2 = 0;
+                            }
                         }
                         continue;
                     

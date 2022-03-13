@@ -7,7 +7,7 @@ SDL_Texture *block_texture;
 SDL_Surface *blocks[5];
 
 SDL_Texture *sprite_texture;
-SDL_Surface *character_sprite[20];
+SDL_Surface *character_sprite[30];
 SDL_Surface *ennemy_sprite[20];
 
 SDL_Texture *bg_texture;
@@ -23,6 +23,8 @@ int Window_Height;
 int Window_Width;
 
 int DrawHitEffect = 0;
+
+
 
 
 
@@ -70,11 +72,21 @@ void DrawPlayerOnMap(Player_t * pEntity, SDL_Renderer * renderer){
         }
     }
     else {
-        if (fabs(Joueur.xSpeed) > MAX_RUN_SPEED/10){
-            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[10 + tick % 7]);
+        if (Joueur.isGrounded){
+            if (fabs(Joueur.xSpeed) > MAX_RUN_SPEED/10){
+                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[10 + tick % 7]);
+            }
+            else {
+                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[tick % 5]);
+            }
         }
         else {
-            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[tick % 5]);
+            if (Joueur.ySpeed > 0){//falling
+                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[20 + tick % 3]);
+            }
+            else {
+                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[23 + tick % 3]);
+            }
         }
     }
     SDL_RenderCopyEx(renderer, sprite_texture, NULL, &rect, 0, NULL, SDL_FLIP_HORIZONTAL*(1-pEntity->direction));
@@ -89,11 +101,21 @@ void DrawPlayer(SDL_Renderer * renderer){
     rect.h = PLAYER_H * (Window_Height/NB_TO_SHOW_Y);
     rect.x = Window_Width/2 - rect.w/2;
     rect.y = Window_Height/2 - rect.h/2 + 5;
-    if (fabs(Joueur.xSpeed) > MAX_RUN_SPEED/10){
-        sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[10 + tick % 7]);
+    if (Joueur.isGrounded){
+        if (fabs(Joueur.xSpeed) > MAX_RUN_SPEED/10){
+            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[10 + tick % 7]);
+        }
+        else {
+            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[tick % 5]);
+        }
     }
     else {
-        sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[tick % 5]);
+        if (Joueur.ySpeed > 0){//falling
+            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[20 + tick % 3]);
+        }
+        else {
+            sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[23 + tick % 3]);
+        }
     }
 
 
@@ -105,32 +127,29 @@ void DrawPlayer(SDL_Renderer * renderer){
         rect.w = Window_Width;
         rect.x = 0;
         rect.y = 0;
-        SDL_RenderCopy(renderer, blur_texture, NULL, &rect);
+        SDL_RenderCopyEx(renderer, blur_texture, NULL, &rect, 0, NULL, SDL_FLIP_HORIZONTAL*(DrawHitEffect));
 
         blur_texture = SDL_CreateTextureFromSurface(renderer, ArrowSurface);
-        rect.h = Window_Height;
-        rect.w = Window_Width;
-        rect.x = 0;
-        rect.y = 0;
-        SDL_RenderCopyEx(renderer, blur_texture, NULL, &rect, 0, NULL, SDL_FLIP_HORIZONTAL*(1-Joueur.direction));
+        SDL_RenderCopyEx(renderer, blur_texture, NULL, &rect, 0, NULL, SDL_FLIP_HORIZONTAL*(DrawHitEffect+1)/2);
     }
 
     SDL_DestroyTexture(sprite_texture);
+    SDL_DestroyTexture(blur_texture);
 }
 
 
 void DrawBars(){
     SDL_Rect rect;
-    rect.w = (Joueur.mana)/100 * Window_Width/2;
+    rect.w = (Joueur.hp) * Window_Width/(2 * HP_MAX);
     rect.h = Window_Height/60;
 
     rect.x = Window_Width /4;
     rect.y = Window_Height/10;
 
-    SDL_SetRenderDrawColor(renderer,250,250,250,250);
-    SDL_RenderFillRect(renderer, &rect);
+    SDL_SetRenderDrawColor(renderer,250,0,0,250);
+    SDL_RenderFillRect(renderer, &rect);        
 
-
+    rect.w = (Joueur.mana) * Window_Width/(2 * MANA_MAX);
     rect.y += rect.h;
 
     SDL_SetRenderDrawColor(renderer,0,0,250,250);
@@ -263,6 +282,10 @@ void *BoucleGestInput(void *arg){
 int BouclePrincipale(){
     CreateWindow();
 
+    unsigned int a = SDL_GetTicks();
+    unsigned int b = SDL_GetTicks();
+    double delta = 0;
+
     blocks[0] = IMG_Load("Res/block.png");
     character_sprite[0] = IMG_Load("Res/idle/Warrior_Idle_1.png");
     character_sprite[1] = IMG_Load("Res/idle/Warrior_Idle_2.png");
@@ -279,6 +302,14 @@ int BouclePrincipale(){
     character_sprite[15] = IMG_Load("Res/Run/Warrior_Run_6.png");
     character_sprite[16] = IMG_Load("Res/Run/Warrior_Run_7.png");
     character_sprite[17] = IMG_Load("Res/Run/Warrior_Run_8.png");
+
+    character_sprite[20] = IMG_Load("Res/Fall/Warrior_Fall_1.png");
+    character_sprite[21] = IMG_Load("Res/Fall/Warrior_Fall_2.png");
+    character_sprite[22] = IMG_Load("Res/Fall/Warrior_Fall_3.png");
+
+    character_sprite[23] = IMG_Load("Res/Jump/Warrior_Jump_1.png");
+    character_sprite[24] = IMG_Load("Res/Jump/Warrior_Jump_2.png");
+    character_sprite[25] = IMG_Load("Res/Jump/Warrior_Jump_3.png");
 
     ennemy_sprite[0] = IMG_Load("Res/monster_idle/Bringer-of-Death_Idle_1.png");
     ennemy_sprite[1] = IMG_Load("Res/monster_idle/Bringer-of-Death_Idle_2.png");
@@ -311,24 +342,31 @@ int BouclePrincipale(){
 
     //GameOption = ON_MAP;
 
+
     while (running)
     {
-        switch (GameOption)
-        {
-            case ON_TERRAIN:
-                //printf("haha");
-                //running = 0;
-                AffichageNormal();
-                break;
-            
-            case ON_MAP:
-                AffichageMap(renderer);
-                break;
+        a = SDL_GetTicks();
+        delta = a - b;
+        if (delta > 1000/60.0){
+            refreshMana();
+            switch (GameOption)
+            {
+                case ON_TERRAIN:
+                    //printf("haha");
+                    //running = 0;
+                    AffichageNormal();
+                    break;
+                
+                case ON_MAP:
+                    AffichageMap(renderer);
+                    break;
 
-            default:
-                //printf("gameoption fault");
-                exit(EXIT_FAILURE);
+                default:
+                    //printf("gameoption fault");
+                    exit(EXIT_FAILURE);
             }
+        }
+
     }
     return 0;
 }

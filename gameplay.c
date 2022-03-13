@@ -2,6 +2,28 @@
 
 int DrawJumpEffect = 0;
 
+void refreshMana(){
+    int map_timer_curr = SDL_GetTicks();
+    int time_spent = (map_timer_curr - map_timer1)/1000;
+    if (GameOption == ON_MAP){
+        if (time_spent){
+            Joueur.mana -= time_spent * 1000;
+        }
+    }
+    else {
+        time_spent = (map_timer_curr - map_timer2)/1000;
+        if (Joueur.mana < MANA_MAX && time_spent){
+            Joueur.mana += time_spent;
+        } 
+    }
+    if (Joueur.mana < 20){
+        GameOption = ON_TERRAIN;
+        mana_save1 = 0;
+        mana_save2 = 0;
+    }
+    printf("mana: %d\n", Joueur.mana);
+}
+
 int checkCollisionY(Player_t *pEntity){
     int case_x = floorf(pEntity->x + pEntity->xSpeed - 0.5);//dont touch this
     int case_y = floorf(pEntity->y + pEntity->ySpeed );
@@ -77,7 +99,7 @@ int EntityMoveX(Player_t *pEntity){
     int MoveRight = 0;
     (pEntity->x - Joueur.x > 0) ? (pEntity->direction = LEFT):(pEntity->direction = RIGHT);
     if (fabs(pEntity->x - Joueur.x) < 5 + rand()%5){
-        if (fabs(pEntity->x - Joueur.x) > 1){
+        if (fabs(pEntity->x - Joueur.x) > 2){
             if (pEntity->x - Joueur.x < 0){
                 MoveRight = 1;
                 MoveLeft = 0;
@@ -89,7 +111,8 @@ int EntityMoveX(Player_t *pEntity){
             DrawHitEffect = 0;
         }
         else {
-            DrawHitEffect = 1;
+            DrawHitEffect = -(pEntity->x - Joueur.x)/fabs(pEntity->x - Joueur.x);
+            Joueur.hp -= 1;
             MoveRight = 0;
             MoveLeft = 0;
         }
@@ -163,6 +186,5 @@ void gestPhysique(){
     }
     PlayerMoveX(&Joueur);
     PlayerMoveY(&Joueur);
-
 }
 

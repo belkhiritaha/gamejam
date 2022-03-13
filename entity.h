@@ -5,7 +5,10 @@
 #define LEFT 1
 #define PLAYER_W 4
 #define PLAYER_H 2
-#define NB_ENNEMY 15
+#define NB_ENNEMY 1
+
+#define MANA_MAX 5000
+#define HP_MAX 5000
 
 
 #include <stdlib.h>
@@ -21,7 +24,8 @@ typedef struct Player
     int direction;
     int isGrounded;
     int id;
-    int mana;
+    float mana;
+    float hp;
     struct Player * suiv;
 } Player_t;
 

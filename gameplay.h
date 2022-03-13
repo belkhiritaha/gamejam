@@ -13,6 +13,8 @@
 #define ENNEMY_GROUND_MVT 0.00003
 #define GRAVITY 0.000008
 
+void refreshMana();
+
 void gestPhysique();
 
 #endif

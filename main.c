@@ -6,7 +6,7 @@ int * chests;
 
 int main(){
     running = 1;
-    GameOption = ON_TERRAIN;
+    GameOption = MENU;
     initPlayer(&Joueur, 20, 10, 0);
     initListeEnnemies(ListeEnnemies, &EnnemiesCount);
     initMap();

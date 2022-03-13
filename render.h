@@ -17,6 +17,6 @@ extern int DrawHitEffect;
 
 int BouclePrincipale();
 
-void AffichageMap(SDL_Renderer * renderer);
+void AffichageMap();
 
 #endif /*_RENDER_HEADER_*/

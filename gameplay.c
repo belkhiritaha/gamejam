@@ -4,12 +4,14 @@ int DrawJumpEffect = 0;
 int Score = 0;
 int Kills = 0;
 
+int ScoreGlobal = 0;
+
 void refreshMana(){
     int map_timer_curr = SDL_GetTicks();
     int time_spent = (map_timer_curr - map_timer1)/1000;
     if (GameOption == ON_MAP){
         if (time_spent){
-            Joueur.mana -= time_spent * 1000;
+           Joueur.mana -= time_spent * 100;
         }
     }
     else {
@@ -45,8 +47,8 @@ int checkCollisionY(Player_t *pEntity){
 }
 
 int checkCollisionX(Player_t *pEntity){
-    int case_right = ceilf(pEntity->x);
-    int case_left = floorf(pEntity->x + 3);
+    int case_right = ceilf(pEntity->x + 2/16);
+    int case_left = floorf(pEntity->x);
     int case_bot = floorf(pEntity->y - 2.6) + 2;
     int case_top = case_bot - 1;
     //int case_below = floorf(pEntity->y  + 2/16.0 - 1) + 1 +1;
@@ -179,7 +181,7 @@ int PlayerMoveY(Player_t * pEntity){
 int checkChest(){
     for (int i=0; i < NB_CHEST; i++){
         //printf("%d %d\n",(int)(Joueur.x * (Window_Width)/MAP_W) - 30, chests[i]);
-        if ((int)(Joueur.x * (Window_Width)/MAP_W) - 30 == chests[i]){
+        if ((int)(Joueur.x * (Window_Width)/MAP_W) == chests[i]){
             return i;
         }
     }
@@ -190,6 +192,7 @@ void UpdateChests(){
     int chestIndex = checkChest();
     if (chestIndex != 69){
         refreshChest(chestIndex);
+        ScoreGlobal = ScoreGlobal + 5;
         int powerUp = rand()%3;
         if (Inventory[powerUp] == 0){
             Inventory[powerUp] = 1;
@@ -212,6 +215,7 @@ void gestPhysique(){
         }
         if (Ennemy->hp <= 0){
             Kills = Kills + 1;
+            ScoreGlobal = ScoreGlobal + 10;
             ListeEnnemies[i] = CreateEnnemy();
             initPlayer(ListeEnnemies[i], rand() % 120, 20, 1);
             DrawHitEffect = 0;

@@ -16,6 +16,8 @@
 extern int Score;
 extern int Kills;
 
+extern int ScoreGlobal;
+
 void refreshMana();
 
 void gestPhysique();

@@ -28,6 +28,10 @@ SDL_Surface *SkullSurface;
 SDL_Surface *Card[3];
 SDL_Texture *CardTexture;
 
+SDL_Surface * Trophy;
+
+SDL_Surface * GameName;
+
 int Window_Height;
 int Window_Width;
 
@@ -49,7 +53,7 @@ void CreateWindow(){
 
     SDL_GetCurrentDisplayMode(0, &ScreenDimension);
 
-    window = SDL_CreateWindow("Paint", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenDimension.w, ScreenDimension.h, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    window = SDL_CreateWindow("Explorateur 3000", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenDimension.w, ScreenDimension.h, SDL_WINDOW_FULLSCREEN_DESKTOP);
 
     if (window == NULL){
         printf("Couldn't create window");
@@ -79,10 +83,16 @@ void DrawCards(){
     rect.w = Window_Width/10;
     rect.h = Window_Height/10;
     rect.x = Window_Width - rect.w - 50;
-    rect.y = 50; 
+    rect.y = 200; 
 
-    CardTexture = SDL_CreateTextureFromSurface(renderer, Card[0]);
-    SDL_RenderCopy(renderer, CardTexture, NULL, &rect);
+    for (int i=0; i<3; i++){
+        if (Inventory[i] == 1){
+            CardTexture = SDL_CreateTextureFromSurface(renderer, Card[i]);
+            SDL_RenderCopy(renderer, CardTexture, NULL, &rect);
+        }
+        rect.y += rect.h + 20;
+    }
+
     SDL_DestroyTexture(CardTexture);
 }
 
@@ -101,6 +111,24 @@ void DrawScore(){
 
     Message_rect.x -= 80;
     blur_texture = SDL_CreateTextureFromSurface(renderer, ChestSurface);
+    SDL_RenderCopy(renderer, blur_texture, NULL, &Message_rect);
+    SDL_DestroyTexture(blur_texture);
+}
+
+void DrawScoreGlobal(){
+    char ScoreString[10];
+    sprintf(ScoreString,"%d",ScoreGlobal);
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(RobotoFont, ScoreString, Color); 
+    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    SDL_Rect Message_rect;
+    Message_rect.w = 50;
+    Message_rect.h = 50;
+    Message_rect.x = 100; 
+    Message_rect.y = Window_Height - Message_rect.h - 50;  
+    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+
+    Message_rect.x -= 80;
+    blur_texture = SDL_CreateTextureFromSurface(renderer, Trophy);
     SDL_RenderCopy(renderer, blur_texture, NULL, &Message_rect);
     SDL_DestroyTexture(blur_texture);
 }
@@ -173,11 +201,16 @@ void DrawPlayerOnMap(Player_t * pEntity, SDL_Renderer * renderer){
     }
     else {
         if (Joueur.isGrounded){
-            if (fabs(Joueur.xSpeed) > MAX_RUN_SPEED/10){
-                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[10 + tick % 7]);
+            if (isJoueurAttacking){
+                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[30 + tick % 12]);
             }
             else {
-                sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[tick % 5]);
+                if (fabs(Joueur.xSpeed) > MAX_RUN_SPEED/10){
+                    sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[10 + tick % 7]);
+                }
+                else {
+                    sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[tick % 5]);
+                }
             }
         }
         else {
@@ -188,6 +221,7 @@ void DrawPlayerOnMap(Player_t * pEntity, SDL_Renderer * renderer){
                 sprite_texture = SDL_CreateTextureFromSurface(renderer, character_sprite[23 + tick % 3]);
             }
         }
+
     }
     SDL_RenderCopyEx(renderer, sprite_texture, NULL, &rect, 0, NULL, SDL_FLIP_HORIZONTAL*(1-pEntity->direction));
     SDL_DestroyTexture(sprite_texture);
@@ -279,9 +313,9 @@ void AffichageNormal(){
 
 //////////////// affichage background
     SDL_Rect parallax;
-    parallax.h = 272;
-    parallax.w = 60;
-    parallax.x = 2 * Joueur.x;
+    parallax.h = Window_Height;
+    parallax.w = Window_Width/4;
+    parallax.x = Joueur.x;
     parallax.y = 0;
     SDL_Rect rect;
     rect.h = Window_Height;
@@ -333,6 +367,7 @@ void AffichageNormal(){
     DrawBars();
 
     DrawScore();
+    DrawScoreGlobal();
     DrawAutoAttack();
     DrawKills();
     DrawCards();
@@ -344,7 +379,7 @@ void AffichageNormal(){
     SDL_DestroyTexture(blur_texture);
 }
 
-void AffichageMap(SDL_Renderer * renderer){
+void AffichageMap(){
     bg_texture = SDL_CreateTextureFromSurface(renderer, background);
     block_texture = SDL_CreateTextureFromSurface(renderer, blocks[0]);
 //////////////// affichage background
@@ -356,7 +391,7 @@ void AffichageMap(SDL_Renderer * renderer){
     SDL_RenderCopy(renderer, bg_texture, NULL, &rect);
 
 
-    rect.w = (Window_Width)/MAP_W;
+    rect.w = 1 + (Window_Width)/MAP_W;
     rect.h = Window_Height/MAP_H;
     rect.x = 0;
     rect.y = 0;
@@ -382,10 +417,24 @@ void AffichageMap(SDL_Renderer * renderer){
 
     DrawChests();
 
-
-    SDL_RenderPresent(renderer);
+    if (GameOption == ON_MAP){
+        SDL_RenderPresent(renderer);
+    }
     SDL_DestroyTexture(block_texture);
     SDL_DestroyTexture(bg_texture);
+}
+
+void AffichageMenu(){
+    AffichageMap();
+    SDL_Rect rect;
+    rect.w = Window_Width;
+    rect.h = Window_Height/2;
+    rect.x = 0; 
+    rect.y = Window_Height/4;  
+    blur_texture = SDL_CreateTextureFromSurface(renderer, GameName);
+    SDL_RenderCopy(renderer, blur_texture , NULL, &rect);
+    SDL_RenderPresent(renderer);
+    SDL_DestroyTexture(blur_texture);
 }
 
 void *BoucleGestInput(void *arg){
@@ -393,7 +442,7 @@ void *BoucleGestInput(void *arg){
       switch(GameOption){
           case ON_MAP : gestInputOnTerrain(renderer);break;
           case ON_TERRAIN : gestInputOnTerrain(renderer);break;
-          //case 2 : gestMenu();break;
+          case MENU : gestMenu();break;
           default:printf("game option fault");break;
       }
     }
@@ -463,7 +512,7 @@ int BouclePrincipale(){
     ennemy_sprite[16] = IMG_Load("Res/monster_walk/Bringer-of-Death_Walk_7.png");
     ennemy_sprite[17] = IMG_Load("Res/monster_walk/Bringer-of-Death_Walk_8.png");
 
-    background = IMG_Load("Res/forest_background.png");
+    background = IMG_Load("Res/background.png");
     blur = IMG_Load("Res/blur.png");
     HitEffectSurface = IMG_Load("Res/HitEffect.png");
     ArrowSurface = IMG_Load("Res/arrow.png");
@@ -475,7 +524,10 @@ int BouclePrincipale(){
 
     Card[0] = IMG_Load("Res/refill_attacks.png");
     Card[1] = IMG_Load("Res/refill_mana.png");
-    Card[2] = IMG_Load("Res/jump_boost.png");
+    Card[2] = IMG_Load("Res/score_boost.png");
+
+    Trophy = IMG_Load("Res/trophy.png");
+    GameName = IMG_Load("Res/gameName.png");
 
     pthread_t threadGest;
     int RetourDuThreadGest = pthread_create(&threadGest, NULL, BoucleGestInput, NULL);
@@ -501,7 +553,11 @@ int BouclePrincipale(){
                     break;
                 
                 case ON_MAP:
-                    AffichageMap(renderer);
+                    AffichageMap();
+                    break;
+
+                case MENU:
+                    AffichageMenu();
                     break;
 
                 default:

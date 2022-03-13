@@ -18,5 +18,6 @@ extern int mana_save2;
 extern int isJoueurAttacking;
 
 void * gestInputOnTerrain(SDL_Renderer * renderer);
+void gestMenu();
 
 #endif

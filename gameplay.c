@@ -115,7 +115,7 @@ int EntityMoveX(Player_t *pEntity){
         }
         else {
             DrawHitEffect = -(pEntity->x - Joueur.x)/fabs(pEntity->x - Joueur.x);
-            Joueur.hp -= 1;
+            Joueur.hp -= 0.7;
             MoveRight = 0;
             MoveLeft = 0;
         }
